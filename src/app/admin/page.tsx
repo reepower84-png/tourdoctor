@@ -28,6 +28,16 @@ export default function AdminPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string>('전체')
+
+  const filteredInquiries = statusFilter === '전체'
+    ? inquiries
+    : inquiries.filter(inquiry => (inquiry.status || '대기중') === statusFilter)
+
+  const getStatusCount = (status: string) => {
+    if (status === '전체') return inquiries.length
+    return inquiries.filter(inquiry => (inquiry.status || '대기중') === status).length
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -192,16 +202,39 @@ export default function AdminPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-900">
-              문의 목록 ({inquiries.length}건)
-            </h2>
-            <button
-              onClick={fetchInquiries}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
-            >
-              새로고침
-            </button>
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                문의 목록 ({filteredInquiries.length}건)
+              </h2>
+              <button
+                onClick={fetchInquiries}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
+              >
+                새로고침
+              </button>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {['전체', ...STATUS_OPTIONS].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    statusFilter === status
+                      ? status === '전체'
+                        ? 'bg-gray-800 text-white'
+                        : status === '대기중'
+                        ? 'bg-yellow-500 text-white'
+                        : status === '연락완료'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-green-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {status} ({getStatusCount(status)})
+                </button>
+              ))}
+            </div>
           </div>
 
           {fetchError && (
@@ -210,9 +243,9 @@ export default function AdminPage() {
             </div>
           )}
 
-          {inquiries.length === 0 ? (
+          {filteredInquiries.length === 0 ? (
             <div className="p-12 text-center text-gray-500">
-              아직 접수된 문의가 없습니다.
+              {statusFilter === '전체' ? '아직 접수된 문의가 없습니다.' : `'${statusFilter}' 상태의 문의가 없습니다.`}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -243,10 +276,10 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {inquiries.map((inquiry, index) => (
+                  {filteredInquiries.map((inquiry, index) => (
                     <tr key={inquiry.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {inquiries.length - index}
+                        {filteredInquiries.length - index}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {inquiry.name}
