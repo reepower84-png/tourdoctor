@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     const { data: inquiry, error } = await supabase
       .from('inquiries')
-      .insert([{ name, phone, message }])
+      .insert([{ name, phone, message, status: '대기중' }])
       .select()
       .single()
 
@@ -113,6 +113,51 @@ export async function GET() {
     console.error('Error fetching inquiries:', error)
     return NextResponse.json(
       { error: '문의 목록을 불러오는 중 오류가 발생했습니다.' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { id, status } = body
+
+    if (!id || !status) {
+      return NextResponse.json(
+        { error: 'ID와 상태가 필요합니다.' },
+        { status: 400 }
+      )
+    }
+
+    const validStatuses = ['대기중', '연락완료', '상담완료']
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: '유효하지 않은 상태입니다.' },
+        { status: 400 }
+      )
+    }
+
+    const { data, error } = await supabase
+      .from('inquiries')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Supabase error:', error)
+      return NextResponse.json(
+        { error: '상태 업데이트 중 오류가 발생했습니다.' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true, inquiry: data })
+  } catch (error) {
+    console.error('Error updating inquiry:', error)
+    return NextResponse.json(
+      { error: '상태 업데이트 중 오류가 발생했습니다.' },
       { status: 500 }
     )
   }

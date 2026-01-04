@@ -7,7 +7,15 @@ interface Inquiry {
   name: string
   phone: string
   message: string
+  status: string
   created_at: string
+}
+
+const STATUS_OPTIONS = ['대기중', '연락완료', '상담완료'] as const
+const STATUS_COLORS: Record<string, string> = {
+  '대기중': 'bg-yellow-100 text-yellow-800',
+  '연락완료': 'bg-blue-100 text-blue-800',
+  '상담완료': 'bg-green-100 text-green-800',
 }
 
 export default function AdminPage() {
@@ -17,6 +25,9 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [fetchError, setFetchError] = useState('')
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -75,6 +86,51 @@ export default function AdminPage() {
       hour: '2-digit',
       minute: '2-digit',
     })
+  }
+
+  const handleStatusChange = async (id: number, newStatus: string) => {
+    setUpdatingStatusId(id)
+    try {
+      const response = await fetch('/api/inquiry', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, status: newStatus }),
+      })
+      if (response.ok) {
+        setInquiries(inquiries.map(inquiry =>
+          inquiry.id === id ? { ...inquiry, status: newStatus } : inquiry
+        ))
+      } else {
+        const data = await response.json()
+        alert(data.error || '상태 변경에 실패했습니다.')
+      }
+    } catch {
+      alert('상태 변경 중 오류가 발생했습니다.')
+    } finally {
+      setUpdatingStatusId(null)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    setDeletingId(id)
+    try {
+      const response = await fetch(`/api/inquiry?id=${id}`, {
+        method: 'DELETE',
+      })
+      if (response.ok) {
+        setInquiries(inquiries.filter(inquiry => inquiry.id !== id))
+      } else {
+        const data = await response.json()
+        alert(data.error || '삭제에 실패했습니다.')
+      }
+    } catch {
+      alert('삭제 중 오류가 발생했습니다.')
+    } finally {
+      setDeletingId(null)
+      setDeleteConfirmId(null)
+    }
   }
 
   if (!isAuthenticated) {
@@ -178,6 +234,12 @@ export default function AdminPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       접수일시
                     </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      상태
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      관리
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -201,6 +263,47 @@ export default function AdminPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(inquiry.created_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                        <select
+                          value={inquiry.status || '대기중'}
+                          onChange={(e) => handleStatusChange(inquiry.id, e.target.value)}
+                          disabled={updatingStatusId === inquiry.id}
+                          className={`px-3 py-1 rounded-full text-xs font-medium border-0 cursor-pointer focus:ring-2 focus:ring-blue-500 ${STATUS_COLORS[inquiry.status || '대기중'] || STATUS_COLORS['대기중']}`}
+                        >
+                          {STATUS_OPTIONS.map((status) => (
+                            <option key={status} value={status}>
+                              {status}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                        {deleteConfirmId === inquiry.id ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleDelete(inquiry.id)}
+                              disabled={deletingId === inquiry.id}
+                              className="px-3 py-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-xs rounded transition-colors"
+                            >
+                              {deletingId === inquiry.id ? '삭제중...' : '확인'}
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirmId(null)}
+                              disabled={deletingId === inquiry.id}
+                              className="px-3 py-1 bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-700 text-xs rounded transition-colors"
+                            >
+                              취소
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteConfirmId(inquiry.id)}
+                            className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs rounded transition-colors"
+                          >
+                            삭제
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
