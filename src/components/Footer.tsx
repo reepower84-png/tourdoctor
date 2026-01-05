@@ -40,10 +40,9 @@ export default function Footer() {
 
           <div>
             <h4 className="text-lg font-semibold text-white mb-4">회사 정보</h4>
-            <ul className="space-y-2 text-gray-400 text-sm">
-              <li>상호명: 제이코리아</li>
-              <li>주소: 인천광역시 계양구 오조산로57번길 15, 7106호</li>
-            </ul>
+            <p className="text-gray-400 text-sm">
+              상호: 제이코리아, 대표: 이주영, 사업자등록번호: 278-30-01540, 주소: 인천광역시 계양구 오조산로57번길 15, 7층 7106호
+            </p>
           </div>
         </div>
 
