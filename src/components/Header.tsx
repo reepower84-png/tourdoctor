@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -48,11 +49,16 @@ export default function Header() {
           {/* Logo */}
           <button
             onClick={scrollToTop}
-            className={`text-xl md:text-2xl font-bold transition-colors ${
-              isScrolled ? 'text-blue-600' : 'text-white'
-            }`}
+            className="transition-opacity hover:opacity-80"
           >
-            투어닥터
+            <Image
+              src="/ChatGPT_Image_2026년_1월_11일_오후_10_03_11_가로-removebg-preview.png"
+              alt="투어닥터"
+              width={160}
+              height={50}
+              className="h-10 md:h-14 w-auto"
+              priority
+            />
           </button>
 
           {/* Desktop Navigation */}

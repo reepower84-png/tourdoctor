@@ -1,10 +1,18 @@
+import Image from 'next/image'
+
 export default function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-2xl font-bold text-white mb-4">투어닥터</h3>
+            <Image
+              src="/ChatGPT_Image_2026년_1월_11일_오후_10_03_11_가로-removebg-preview.png"
+              alt="투어닥터"
+              width={180}
+              height={60}
+              className="h-14 w-auto mb-4"
+            />
             <p className="text-gray-400 mb-4">
               제주도 & 해외 여행상품권 전문 판매<br />
               합리적인 가격으로 특별한 여행을 선물하세요.
