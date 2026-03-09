@@ -36,18 +36,39 @@ async function sendDiscordNotification(inquiry: { name: string; phone: string; m
     }
   }
 
-  try {
-    await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        embeds: [embed]
+  // 재시도 로직 추가
+  const maxRetries = 3
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10초 타임아웃
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          embeds: [embed]
+        }),
+        signal: controller.signal
       })
-    })
-  } catch (error) {
-    console.error('Discord 알림 전송 실패:', error)
+
+      clearTimeout(timeoutId)
+
+      if (response.ok) {
+        console.log('Discord 알림 전송 성공')
+        return
+      } else {
+        console.error(`Discord 알림 전송 실패 (시도 ${attempt}/${maxRetries}): HTTP ${response.status}`)
+      }
+    } catch (error) {
+      console.error(`Discord 알림 전송 실패 (시도 ${attempt}/${maxRetries}):`, error)
+      if (attempt < maxRetries) {
+        // 재시도 전 잠시 대기
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+      }
+    }
   }
 }
 
@@ -77,8 +98,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Discord로 알림 전송 (비동기, 실패해도 문의 접수는 성공 처리)
-    sendDiscordNotification(inquiry)
+    // Discord로 알림 전송 (await로 완료까지 대기, 실패해도 문의 접수는 성공 처리)
+    await sendDiscordNotification(inquiry)
 
     return NextResponse.json(
       { success: true, inquiry },
