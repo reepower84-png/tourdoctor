@@ -40,17 +40,6 @@ export default function InquiryForm() {
               </svg>
               1600-7398
             </a>
-            <a
-              href="http://pf.kakao.com/_AnEEj/chat"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center px-6 py-3 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold rounded-full transition-colors"
-            >
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 3C6.477 3 2 6.463 2 10.691c0 2.653 1.725 4.986 4.348 6.342-.188.707-.683 2.561-.783 2.957-.124.492.181.485.381.353.157-.103 2.502-1.697 3.514-2.388.505.073 1.024.111 1.54.111 5.523 0 10-3.463 10-7.691S17.523 3 12 3z"/>
-              </svg>
-              카카오톡 상담
-            </a>
           </div>
         </div>
       </div>
